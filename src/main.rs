@@ -14,6 +14,7 @@ pub const NUMBER_OF_ENEMIES: usize = 4;
 pub const ENEMY_SPEED: f32 = 200.0;
 pub const ENEMY_SIZE: f32 = 64.0;
 pub const NUMBER_OF_STARS: usize = 10;
+pub const STAR_SIZE: f32 = 30.0;
 
 
 // Commands: Used to create or modify entities in the game.
@@ -29,7 +30,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup,(spawn_player, spawn_enemies, spawn_stars))
-        .add_systems(Update,(spawn_camera, player_movement, confine_player_movement, enemy_movement, update_enemy_direction, confine_enemy_movement, enemy_hit_player))
+        .add_systems(Update,(spawn_camera, player_movement, confine_player_movement, enemy_movement, update_enemy_direction, confine_enemy_movement, enemy_hit_player, player_hit_star))
         // start the game loop
         .run();
 }
@@ -329,5 +330,24 @@ pub fn enemy_hit_player(
             }
         }
     }
-
 }
+
+pub fn player_hit_star(
+    mut commands: Commands,
+    player_query: Query<&Transform, With<Player>>,
+    star_query: Query<(Entity, &Transform), With<Star>>,
+    // asset_server: Res<AssetServer>,
+){
+    if let Ok(player_transform) = player_query.get_single(){
+        for(star_entity, star_transform) in star_query.iter(){
+            let distance = player_transform
+                .translation
+                .distance(star_transform.translation);
+            if distance < PLAYER_SIZE / 2.0 + STAR_SIZE / 2.0 {
+                println!("Player hit star!");
+                commands.entity(star_entity).despawn();
+            }
+        }
+    }
+}
+
